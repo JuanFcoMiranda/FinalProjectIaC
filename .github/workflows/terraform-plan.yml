@@ -3,15 +3,7 @@ name: Terraform Plan
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Target environment (dev, staging, prod)"
-        required: true
-        default: "dev"
-
+    
 permissions:
   id-token: write
   contents: read

@@ -23,14 +23,13 @@ jobs:
         with:
           terraform_version: 1.13.4
 
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
       - name: Install tflint
         uses: terraform-linters/setup-tflint@v6
         with:
-          tflint_version: v0.52.0
-          cache: true
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
+          tflint_version: latest
 
       - name: Init TFLint
         run: tflint --init

@@ -29,23 +29,17 @@ jobs:
           tflint_version: v0.52.0
           cache: true
 
-      - name: Run tflint (Lint)
-        run: tflint --recursive
-
-      - name: Terraform Init
-        run: terraform init
-
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
-
-      - name: Terraform Validate
-        run: terraform validate
 
       - name: Init TFLint
         run: tflint --init
         env:
           # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run tflint (Lint)
+        run: tflint --recursive
 
       - name: Run TFLint
         run: tflint -f compact

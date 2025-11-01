@@ -13,6 +13,7 @@ jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
+    environment: $TF_ENV
     env:
       TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
       RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}

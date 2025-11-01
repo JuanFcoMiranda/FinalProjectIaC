@@ -25,6 +25,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Print resource group name
+        run: echo $RESOURCE_GROUP
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:

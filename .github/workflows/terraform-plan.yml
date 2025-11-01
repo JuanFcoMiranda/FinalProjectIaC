@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
+      RESOURCE_GROUP: "rg-terraform-backend"
+      STORAGE_ACCOUNT: "tfstate-juanfran"
+      CONTAINER_NAME: "tfstate"
 
     steps:
       - name: Checkout repository
@@ -32,6 +35,46 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Ensure Resource Group exists
+        run: |
+          echo "Checking Resource Group: $RESOURCE_GROUP"
+          if ! az group show --name "$RESOURCE_GROUP" &>/dev/null; then
+            echo "Resource Group not found. Creating..."
+            az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+          else
+            echo "Resource Group already exists."
+          fi
+
+      - name: Ensure Storage Account exists
+        run: |
+          echo "Checking Storage Account: $STORAGE_ACCOUNT"
+          if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" &>/dev/null; then
+            echo "Storage Account not found. Creating..."
+            az storage account create \
+              --name "$STORAGE_ACCOUNT" \
+              --resource-group "$RESOURCE_GROUP" \
+              --location "$LOCATION" \
+              --sku Standard_LRS \
+              --kind StorageV2 \
+              --allow-blob-public-access false \
+              --min-tls-version TLS1_2
+            echo "Waiting for Storage Account to be ready..."
+            sleep 20
+          else
+            echo "Storage Account already exists."
+          fi
+
+      - name: Ensure Blob Container exists
+        run: |
+          ACCOUNT_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" --account-name "$STORAGE_ACCOUNT" --query "[0].value" -o tsv)
+          echo "Checking Blob Container: $CONTAINER_NAME"
+          if ! az storage container show --name "$CONTAINER_NAME" --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY" &>/dev/null; then
+            echo "Blob Container not found. Creating..."
+            az storage container create --name "$CONTAINER_NAME" --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY"
+          else
+            echo "Blob Container already exists."
+          fi
+      
       - name: Terraform Init
         run: terraform init
 

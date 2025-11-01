@@ -15,9 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
-      RESOURCE_GROUP: "rg-terraform-backend"
-      STORAGE_ACCOUNT: "tfstate-juanfran"
-      CONTAINER_NAME: "tfstate"
+      RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+      STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
+      CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+      LOCATION: ${{ secrets.LOCATION }}
 
     steps:
       - name: Checkout repository

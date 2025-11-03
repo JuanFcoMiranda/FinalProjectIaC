@@ -15,7 +15,7 @@ env:
 jobs:
   plan:
     name: Terraform Plan
-    environment: ${{ env.TF_VERSION }}
+    environment: ${{ env.TF_ENV }}
     runs-on: ubuntu-latest
     env:
       TF_VERSION: 1.13.4

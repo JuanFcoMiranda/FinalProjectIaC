@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
           exists=$(az group exists --name $RESOURCE_GROUP)
-          if [ $exists ]; then
+          if [ $exists = true ]; then
             echo "Resource Group already exists."
           else
             echo "Resource Group not found. Creating..."

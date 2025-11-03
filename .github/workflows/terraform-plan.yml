@@ -16,7 +16,7 @@ jobs:
     environment: $TF_ENV
     env:
       TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
-      RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
+      RESOURCE_GROUP: 'rg-terraform-backend'
       STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
       CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
       LOCATION: ${{ secrets.LOCATION }}

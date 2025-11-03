@@ -43,8 +43,7 @@ jobs:
       - name: Ensure Resource Group exists
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
-          group=$(az group show -n $RESOURCE_GROUP --query name -o tsv)
-          if [ $group = $RESOURCE_GROUP ]; then
+          if az group show --name "$RESOURCE_GROUP" 2>&1 > /dev/null; then
             echo "Resource Group already exists."
           else
             echo "Resource Group not found. Creating..."

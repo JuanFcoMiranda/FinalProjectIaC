@@ -43,7 +43,7 @@ jobs:
       - name: Ensure Resource Group exists
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
-          if ! az group show --name "$RESOURCE_GROUP" &>/dev/null; then
+          if [ $(az group exists --name $RESOURCEGROUPNAME) = false ]; then
             echo "Resource Group not found. Creating..."
             az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
           else

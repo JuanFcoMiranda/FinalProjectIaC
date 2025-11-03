@@ -41,8 +41,6 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Ensure Resource Group exists
-        env:
-          RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
           group=$(az group show -n $RESOURCE_GROUP --query name -o tsv)

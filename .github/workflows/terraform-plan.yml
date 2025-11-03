@@ -16,7 +16,7 @@ jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: $TF_ENV  
+    environment: $TF_ENV
 
     steps:
       - name: Checkout repository

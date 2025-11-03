@@ -40,6 +40,7 @@ jobs:
         env:
           RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
           LOCATION: ${{ secrets.LOCATION }}
+        shell: bash
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
           if az group show --name $RESOURCE_GROUP 2>&1 > /dev/null; then
@@ -50,6 +51,7 @@ jobs:
           fi
 
       # - name: Ensure Storage Account exists
+      #   shell: bash
       #   run: |
       #     echo "Checking Storage Account: ${{ secrets.STORAGE_ACCOUNT }}"
       #     if ! az storage account show --name "${{ secrets.STORAGE_ACCOUNT }}" --resource-group "${{ secrets.RESOURCE_GROUP }}" &>/dev/null; then
@@ -69,6 +71,7 @@ jobs:
       #     fi
 
       # - name: Ensure Blob Container exists
+      #   shell: bash
       #   run: |
       #     ACCOUNT_KEY=$(az storage account keys list --resource-group "${{ secrets.RESOURCE_GROUP }}" --account-name "${{ secrets.STORAGE_ACCOUNT }}" --query "[0].value" -o tsv)
       #     echo "Checking Blob Container: ${{ secrets.CONTAINER_NAME }}"

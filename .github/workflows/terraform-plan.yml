@@ -45,8 +45,8 @@ jobs:
           RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
         run: |
           echo "Checking Resource Group: $RESOURCE_GROUP"
-          exists=$(az group exists --name $RESOURCE_GROUP)
-          if [ $exists ]; then
+          group=$(az group show -n $RESOURCE_GROUP --query name -o tsv)
+          if [ $group = $RESOURCE_GROUP ]; then
             echo "Resource Group already exists."
           else
             echo "Resource Group not found. Creating..."

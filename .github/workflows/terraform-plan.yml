@@ -9,17 +9,14 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
+
 jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    environment: $TF_ENV
-    env:
-      TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
-      RESOURCE_GROUP: 'rg-terraform-backend'
-      STORAGE_ACCOUNT: ${{ secrets.STORAGE_ACCOUNT }}
-      CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-      LOCATION: 'spaincentral'
+    environment: $TF_ENV  
 
     steps:
       - name: Checkout repository
@@ -42,23 +39,23 @@ jobs:
 
       - name: Ensure Resource Group exists
         run: |
-          echo "Checking Resource Group: $RESOURCE_GROUP"
-          if az group show --name $RESOURCE_GROUP 2>&1 > /dev/null; then
+          echo "Checking Resource Group: ${{ secrets.RESOURCE_GROUP }}"
+          if az group show --name ${{ secrets.RESOURCE_GROUP }} 2>&1 > /dev/null; then
             echo "Resource Group already exists."
           else
             echo "Resource Group not found. Creating..."
-            az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+            az group create --name "${{ secrets.RESOURCE_GROUP }}" --location "${{ secrets.LOCATION }}"
           fi
 
       - name: Ensure Storage Account exists
         run: |
-          echo "Checking Storage Account: $STORAGE_ACCOUNT"
-          if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" &>/dev/null; then
+          echo "Checking Storage Account: ${{ secrets.STORAGE_ACCOUNT }}"
+          if ! az storage account show --name "${{ secrets.STORAGE_ACCOUNT }}" --resource-group "${{ secrets.RESOURCE_GROUP }}" 2>&1 > /dev/null; then
             echo "Storage Account not found. Creating..."
             az storage account create \
-              --name "$STORAGE_ACCOUNT" \
-              --resource-group "$RESOURCE_GROUP" \
-              --location "$LOCATION" \
+              --name ${{ secrets.STORAGE_ACCOUNT }} \
+              --resource-group ${{ secrets.RESOURCE_GROUP }} \
+              --location ${{ secrets.LOCATION }} \
               --sku Standard_LRS \
               --kind StorageV2 \
               --allow-blob-public-access false \
@@ -71,11 +68,11 @@ jobs:
 
       - name: Ensure Blob Container exists
         run: |
-          ACCOUNT_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP" --account-name "$STORAGE_ACCOUNT" --query "[0].value" -o tsv)
-          echo "Checking Blob Container: $CONTAINER_NAME"
-          if ! az storage container show --name "$CONTAINER_NAME" --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY" &>/dev/null; then
+          ACCOUNT_KEY=$(az storage account keys list --resource-group ${{ secrets.RESOURCE_GROUP }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --query "[0].value" -o tsv)
+          echo "Checking Blob Container: ${{ secrets.CONTAINER_NAME }}"
+          if ! az storage container show --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --account-key $ACCOUNT_KEY 2>&1 > /dev/null; then
             echo "Blob Container not found. Creating..."
-            az storage container create --name "$CONTAINER_NAME" --account-name "$STORAGE_ACCOUNT" --account-key "$ACCOUNT_KEY"
+            az storage container create --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --account-key $ACCOUNT_KEY
           else
             echo "Blob Container already exists."
           fi

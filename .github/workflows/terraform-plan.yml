@@ -50,7 +50,9 @@ jobs:
         shell: bash
         run: |
           echo "Checking Storage Account: ${{ secrets.STORAGE_ACCOUNT }}"
-          if ! az storage account show --name ${{ secrets.STORAGE_ACCOUNT }} --resource-group ${{ secrets.RESOURCE_GROUP }} 2>&1 > /dev/null; then
+          if az storage account show --name ${{ secrets.STORAGE_ACCOUNT }} --resource-group ${{ secrets.RESOURCE_GROUP }} 2>&1 > /dev/null; then
+            echo "Storage Account already exists."
+          else
             echo "Storage Account not found. Creating..."
             az storage account create \
               --name ${{ secrets.STORAGE_ACCOUNT }} \
@@ -62,8 +64,6 @@ jobs:
               --min-tls-version TLS1_2
             echo "Waiting for Storage Account to be ready..."
             sleep 20
-          else
-            echo "Storage Account already exists."
           fi
 
       - name: Ensure Blob Container exists
@@ -71,11 +71,11 @@ jobs:
         run: |
           ACCOUNT_KEY=$(az storage account keys list --resource-group ${{ secrets.RESOURCE_GROUP }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --query "[0].value" -o tsv)
           echo "Checking Blob Container: ${{ secrets.CONTAINER_NAME }}"
-          if ! az storage container show --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --account-key $ACCOUNT_KEY 2>&1 > /dev/null; then
+          if az storage container show --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --account-key $ACCOUNT_KEY 2>&1 > /dev/null; then
+            echo "Blob Container already exists."
+          else
             echo "Blob Container not found. Creating..."
             az storage container create --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT }} --account-key $ACCOUNT_KEY
-          else
-            echo "Blob Container already exists."
           fi
       
       - name: Terraform Init

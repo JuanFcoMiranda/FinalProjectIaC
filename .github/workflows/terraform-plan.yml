@@ -111,7 +111,7 @@ jobs:
     name: Terraform Apply
     needs: plan
     runs-on: ubuntu-latest
-    environment: ${{ env.TF_ENV }}
+    environment: $TF_ENV
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:

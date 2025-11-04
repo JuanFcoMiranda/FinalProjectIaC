@@ -42,7 +42,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: terraform-plan-${{ env.TF_ENV }}
-          path: .
+          path: tfplan
 
       - name: Terraform Init
         run: terraform init

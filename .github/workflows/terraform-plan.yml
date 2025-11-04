@@ -16,7 +16,6 @@ env:
 jobs:
   plan:
     name: Terraform Plan
-    environment: $TF_ENV
     runs-on: ubuntu-latest
 
     steps:
@@ -111,7 +110,7 @@ jobs:
     name: Terraform Apply
     needs: plan
     runs-on: ubuntu-latest
-    environment: $TF_ENV
+    environment: ${{ env.TF_ENV }}
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:

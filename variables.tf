@@ -14,6 +14,6 @@ variable "tfstate_storage_name" {
 }
 
 variable "location" {
-  default = "Spain Central"
+  default = "spaincentral"
   type    = string
 }

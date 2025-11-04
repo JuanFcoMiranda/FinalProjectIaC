@@ -20,10 +20,7 @@ jobs:
   apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
-    environment:
-      name: dev
-    env:
-      TF_ENV: ${{ github.event.inputs.environment || 'dev' }}
+    environment: dev
 
     steps:
       - name: Checkout repository

@@ -1,3 +1,17 @@
+terraform {
+  required_version = ">= 1.13.4"
+
+  backend "azurerm" {
+  }
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.51.0"
+    }
+  }
+}
+
 module "rg" {
   source   = "./modules/resource-group"
   name     = var.resource_group_name

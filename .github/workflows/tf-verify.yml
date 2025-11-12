@@ -41,8 +41,5 @@ jobs:
           # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Run tflint (Lint)
-        run: tflint --recursive
-
-      - name: Run TFLint
-        run: tflint -f compact
+      - name: Run TFLint (Lint)
+        run: tflint --recursive -f compact

@@ -16,6 +16,7 @@ env:
 jobs:
   plan:
     name: Terraform Plan
+    environment: $TF_ENV
     runs-on: ubuntu-latest
 
     steps:

@@ -1,3 +1,14 @@
+terraform {
+  required_version = ">= 1.13.4"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.51.0"
+    }
+  }
+}
+
 resource "azurerm_storage_account" "this" {
   name                     = var.name
   resource_group_name      = var.resource_group_name

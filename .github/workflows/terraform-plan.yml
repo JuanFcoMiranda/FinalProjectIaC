@@ -84,7 +84,6 @@ jobs:
             -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-            -backend-config="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Format Check
@@ -145,7 +144,6 @@ jobs:
             -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-            -backend-config="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Apply
@@ -155,3 +153,129 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Terraform Outputs
+        id: tf_outputs
+        run: |
+          AKS_NAME=$(terraform output -raw aks_cluster_name)
+          AKS_RG=$(terraform output -raw resource_group_name)
+          echo "aks_name=$AKS_NAME" >> $GITHUB_OUTPUT
+          echo "aks_rg=$AKS_RG" >> $GITHUB_OUTPUT
+
+      - name: Save outputs for next job
+        uses: actions/upload-artifact@v5
+        with:
+          name: terraform-outputs
+          path: |
+            terraform.tfstate
+
+  deploy-monitoring:
+    name: Deploy Monitoring Stack
+    needs: apply
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Download Terraform State
+        uses: actions/download-artifact@v5
+        with:
+          name: terraform-outputs
+          path: .
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
+            -backend-config="key=terraform.tfstate"
+
+      - name: Get AKS Credentials
+        run: |
+          AKS_NAME=$(terraform output -raw aks_cluster_name)
+          AKS_RG=$(terraform output -raw resource_group_name)
+          echo "Getting credentials for AKS cluster: $AKS_NAME in resource group: $AKS_RG"
+          az aks get-credentials --resource-group $AKS_RG --name $AKS_NAME --overwrite-existing
+
+      - name: Verify kubectl connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Deploy Monitoring Namespace
+        run: kubectl apply -f k8s-manifests/namespace.yaml
+
+      - name: Deploy Prometheus
+        run: |
+          kubectl apply -f k8s-manifests/prometheus-configmap.yaml
+          kubectl apply -f k8s-manifests/prometheus-serviceaccount.yaml
+          kubectl apply -f k8s-manifests/prometheus-clusterrole.yaml
+          kubectl apply -f k8s-manifests/prometheus-clusterrolebinding.yaml
+          kubectl apply -f k8s-manifests/prometheus-deployment.yaml
+          kubectl apply -f k8s-manifests/prometheus-service.yaml
+
+      - name: Deploy Grafana
+        run: kubectl apply -f k8s-manifests/grafana.yaml
+
+      - name: Wait for Prometheus to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n monitoring
+
+      - name: Wait for Grafana to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/grafana -n monitoring
+
+      - name: Get Monitoring Services Status
+        run: |
+          echo "=== Monitoring Pods ==="
+          kubectl get pods -n monitoring
+          echo ""
+          echo "=== Monitoring Services ==="
+          kubectl get svc -n monitoring
+          echo ""
+          echo "=== Grafana External IP (may take a few minutes) ==="
+          kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' || echo "IP not yet assigned, check later with: kubectl get svc grafana -n monitoring"
+
+      - name: Create deployment summary
+        run: |
+          echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Infrastructure Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ AKS Cluster" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Key Vault" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ App Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Container Registry" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Monitoring Stack" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Prometheus deployed to \`monitoring\` namespace" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Grafana deployed to \`monitoring\` namespace" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Access Information" >> $GITHUB_STEP_SUMMARY
+          echo "### Grafana" >> $GITHUB_STEP_SUMMARY
+          echo "- **Default Username**: admin" >> $GITHUB_STEP_SUMMARY
+          echo "- **Default Password**: admin (change on first login)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Get External IP**: \`kubectl get svc grafana -n monitoring\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Prometheus" >> $GITHUB_STEP_SUMMARY
+          echo "- **Port Forward**: \`kubectl port-forward -n monitoring svc/prometheus 9090:9090\`" >> $GITHUB_STEP_SUMMARY
+

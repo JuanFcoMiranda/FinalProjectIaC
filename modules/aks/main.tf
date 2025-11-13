@@ -1,4 +1,4 @@
-resource "azurerm_kubernetes_cluster" "this" {
+resource "azurerm_kubernetes_cluster" "aks" {
   name                = var.name
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -6,14 +6,14 @@ resource "azurerm_kubernetes_cluster" "this" {
   kubernetes_version  = var.kubernetes_version
 
   default_node_pool {
-    name                = var.default_node_pool_name
-    node_count          = var.enable_auto_scaling ? null : var.node_count
-    vm_size             = var.vm_size
-    os_disk_size_gb     = var.os_disk_size_gb
-    vnet_subnet_id      = var.subnet_id
+    name                 = var.default_node_pool_name
+    node_count           = var.enable_auto_scaling ? null : var.node_count
+    vm_size              = var.vm_size
+    os_disk_size_gb      = var.os_disk_size_gb
+    vnet_subnet_id       = var.subnet_id
     auto_scaling_enabled = var.enable_auto_scaling
-    min_count           = var.enable_auto_scaling ? var.min_count : null
-    max_count           = var.enable_auto_scaling ? var.max_count : null
+    min_count            = var.enable_auto_scaling ? var.min_count : null
+    max_count            = var.enable_auto_scaling ? var.max_count : null
   }
 
   identity {
@@ -48,7 +48,7 @@ resource "azurerm_kubernetes_cluster" "this" {
 # Asignación de rol para ACR pull
 resource "azurerm_role_assignment" "aks_acr" {
   count                = var.acr_id != null ? 1 : 0
-  principal_id         = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
+  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
   role_definition_name = "AcrPull"
   scope                = var.acr_id
 }

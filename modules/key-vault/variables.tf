@@ -43,7 +43,7 @@ variable "purge_protection_enabled" {
   default     = false
 }
 
-variable "enable_rbac_authorization" {
+variable "rbac_authorization_enabled" {
   description = "Enable RBAC authorization for the Key Vault instead of access policies"
   type        = bool
   default     = false

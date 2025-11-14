@@ -9,7 +9,7 @@ terraform {
   }
 }
 
-resource "azurerm_storage_account" "this" {
+resource "azurerm_storage_account" "storage_account" {
   name                     = var.name
   resource_group_name      = var.resource_group_name
   location                 = var.location
@@ -17,8 +17,8 @@ resource "azurerm_storage_account" "this" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "this" {
+resource "azurerm_storage_container" "storage_container" {
   name                  = var.container_name
-  storage_account_id    = azurerm_storage_account.this.id
+  storage_account_id    = azurerm_storage_account.storage_account.id
   container_access_type = "private"
 }

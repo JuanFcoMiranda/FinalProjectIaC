@@ -11,7 +11,7 @@ terraform {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_key_vault" "this" {
+resource "azurerm_key_vault" "key_vault" {
   name                       = var.name
   location                   = var.location
   resource_group_name        = var.resource_group_name
@@ -20,7 +20,7 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days = var.soft_delete_retention_days
   purge_protection_enabled   = var.purge_protection_enabled
 
-  enable_rbac_authorization = var.enable_rbac_authorization
+  rbac_authorization_enabled = var.enable_rbac_authorization
 
   network_acls {
     default_action = var.default_action
@@ -34,7 +34,7 @@ resource "azurerm_key_vault" "this" {
 # Access policy para el usuario/service principal actual
 resource "azurerm_key_vault_access_policy" "current_user" {
   count        = var.enable_rbac_authorization ? 0 : 1
-  key_vault_id = azurerm_key_vault.this.id
+  key_vault_id = azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
@@ -74,8 +74,8 @@ resource "azurerm_key_vault_access_policy" "current_user" {
 
 # Access policy para AKS (si se proporciona)
 resource "azurerm_key_vault_access_policy" "aks" {
-  count        = var.aks_identity_object_id != null && !var.enable_rbac_authorization ? 1 : 0
-  key_vault_id = azurerm_key_vault.this.id
+  count        = var.aks_identity_object_id != null && !var.rbac_authorization_enabled ? 1 : 0
+  key_vault_id = azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = var.aks_identity_object_id
 

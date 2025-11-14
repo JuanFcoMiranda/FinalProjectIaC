@@ -9,7 +9,7 @@ terraform {
   }
 }
 
-resource "azurerm_app_configuration" "this" {
+resource "azurerm_app_configuration" "app_config" {
   name                = var.name
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -25,7 +25,7 @@ resource "azurerm_app_configuration" "this" {
 # Crear feature flags de ejemplo
 resource "azurerm_app_configuration_feature" "feature_flags" {
   for_each               = var.feature_flags
-  configuration_store_id = azurerm_app_configuration.this.id
+  configuration_store_id = azurerm_app_configuration.app_config.id
   name                   = each.key
   label                  = each.value.label
   enabled                = each.value.enabled
@@ -35,7 +35,7 @@ resource "azurerm_app_configuration_feature" "feature_flags" {
 # Crear key-values de configuración
 resource "azurerm_app_configuration_key" "config_keys" {
   for_each               = var.configuration_keys
-  configuration_store_id = azurerm_app_configuration.this.id
+  configuration_store_id = azurerm_app_configuration.app_config.id
   key                    = each.key
   value                  = each.value.value
   label                  = each.value.label

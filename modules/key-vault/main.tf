@@ -20,7 +20,7 @@ resource "azurerm_key_vault" "key_vault" {
   soft_delete_retention_days = var.soft_delete_retention_days
   purge_protection_enabled   = var.purge_protection_enabled
 
-  rbac_authorization_enabled = var.enable_rbac_authorization
+  rbac_authorization_enabled = var.rbac_authorization_enabled
 
   network_acls {
     default_action = var.default_action
@@ -33,7 +33,7 @@ resource "azurerm_key_vault" "key_vault" {
 
 # Access policy para el usuario/service principal actual
 resource "azurerm_key_vault_access_policy" "current_user" {
-  count        = var.enable_rbac_authorization ? 0 : 1
+  count        = var.rbac_authorization_enabled ? 0 : 1
   key_vault_id = azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id

@@ -47,7 +47,7 @@ module "key_vault" {
   aks_identity_object_id = module.aks.key_vault_secrets_provider_identity
 
   tags = {
-    Environment = "Demo"
+    Environment = var.environment
     ManagedBy   = "Terraform"
   }
 
@@ -85,7 +85,7 @@ module "app_config" {
   }
 
   tags = {
-    Environment = "Demo"
+    Environment = var.environment
     ManagedBy   = "Terraform"
   }
 }
@@ -110,7 +110,7 @@ module "aks" {
   acr_id = module.acr.id
 
   tags = {
-    Environment = "Demo"
+    Environment = var.environment
     ManagedBy   = "Terraform"
   }
 }

@@ -3,6 +3,12 @@ variable "resource_group_name" {
   type    = string
 }
 
+variable "environment" {
+  type        = string
+  description = "Environment name (dev, staging, prod)"
+  default     = "dev"
+}
+
 variable "acr_name" {
   default = "acrjuanfrandemo"
   type    = string

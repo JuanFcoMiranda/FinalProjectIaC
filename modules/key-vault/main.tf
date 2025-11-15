@@ -74,7 +74,6 @@ resource "azurerm_key_vault_access_policy" "current_user" {
 
 # Access policy para AKS (si se proporciona)
 resource "azurerm_key_vault_access_policy" "aks" {
-  count        = var.aks_identity_object_id != null && !var.rbac_authorization_enabled ? 1 : 0
   key_vault_id = azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = var.aks_identity_object_id
